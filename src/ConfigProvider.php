@@ -9,13 +9,18 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
-namespace Ares\HyperfExceptionNotify;
+namespace AresInspired\HyperfExceptionNotify;
+
 
 class ConfigProvider
 {
     public function __invoke(): array
     {
-        return [
+        if ((bool) \Hyperf\Support\env('EXCEPTION_NOTIFY_ENABLED', true) === false) {
+            return [];
+        }
+
+        $config = [
             'dependencies' => [
             ],
             'commands' => [
@@ -27,6 +32,21 @@ class ConfigProvider
                     ],
                 ],
             ],
+            'exceptions' => [
+                'handler' => [
+                    'http' => [
+	                    \AresInspired\HyperfExceptionNotify\Exceptions\Handler\ExceptionNotifyHandler::class,
+                    ],
+                ],
+            ],
         ];
+
+        if (class_exists('\Hyperf\Command\Event\FailToHandle')) {
+            $config['listeners'] = [
+                \AresInspired\HyperfExceptionNotify\Listener\CommandFailToHandleListener::class,
+            ];
+        }
+
+        return $config;
     }
 }
