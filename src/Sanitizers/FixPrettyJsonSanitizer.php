@@ -17,11 +17,8 @@ use Throwable;
 
 class FixPrettyJsonSanitizer
 {
-    protected \AresInspired\HyperfExceptionNotify\Support\JsonFixer $jsonFixer;
-
-    public function __construct(JsonFixer $jsonFixer)
+    public function __construct(protected JsonFixer $jsonFixer)
     {
-        $this->jsonFixer = $jsonFixer;
     }
 
     public function handle(string $report, Closure $next, string $missingValue = '"..."'): string
