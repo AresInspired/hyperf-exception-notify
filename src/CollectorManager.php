@@ -60,7 +60,6 @@ class CollectorManager extends Fluent
     public function offsetSet($offset, $value): void
     {
         if (! $value instanceof CollectorContract) {
-            // dump($value);
             throw new InvalidArgumentException(sprintf('Collector must be instance of %s', CollectorContract::class));
         }
 
@@ -69,8 +68,6 @@ class CollectorManager extends Fluent
 
     public function toReport(Throwable $throwable): string
     {
-        // dump($this);
-
         return \Hyperf\Collection\collect($this)
             ->mapWithKeys(static function (CollectorContract $collector) use ($throwable): array {
                 $collector instanceof ExceptionAwareContract and $collector->setException($throwable);

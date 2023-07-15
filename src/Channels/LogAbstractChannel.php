@@ -1,18 +1,15 @@
 <?php
 
 declare(strict_types=1);
-
 /**
- * This file is part of the guanguans/laravel-exception-notify.
+ * This file is part of Hyperf.
  *
- * (c) guanguans <ityaozm@gmail.com>
- *
- * This source file is subject to the MIT license that is bundled.
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
-
 namespace AresInspired\HyperfExceptionNotify\Channels;
-
-
 
 class LogAbstractChannel extends AbstractChannel
 {
@@ -28,6 +25,6 @@ class LogAbstractChannel extends AbstractChannel
 
     public function report(string $report): void
     {
-		stdoutLogger()->{$this->level}($report);
+        stdoutLogger()->{$this->level}($report);
     }
 }

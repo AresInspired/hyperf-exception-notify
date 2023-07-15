@@ -1,18 +1,19 @@
 <?php
 
 declare(strict_types=1);
-
 /**
- * This file is part of the guanguans/laravel-exception-notify.
+ * This file is part of Hyperf.
  *
- * (c) guanguans <ityaozm@gmail.com>
- *
- * This source file is subject to the MIT license that is bundled.
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
-
 namespace AresInspired\HyperfExceptionNotify\Sanitizers;
 
 use AresInspired\HyperfExceptionNotify\Support\JsonFixer;
+use Closure;
+use Throwable;
 
 class FixPrettyJsonSanitizer
 {
@@ -23,7 +24,7 @@ class FixPrettyJsonSanitizer
         $this->jsonFixer = $jsonFixer;
     }
 
-    public function handle(string $report, \Closure $next, string $missingValue = '"..."'): string
+    public function handle(string $report, Closure $next, string $missingValue = '"..."'): string
     {
         try {
             $fixedJson = $this->jsonFixer->silent(false)->missingValue($missingValue)->fix($report);
@@ -32,7 +33,7 @@ class FixPrettyJsonSanitizer
                 json_decode($fixedJson, true),
                 JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
             ));
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             return $next($report);
         }
     }

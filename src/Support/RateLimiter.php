@@ -1,196 +1,172 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
 namespace AresInspired\HyperfExceptionNotify\Support;
 
 use Closure;
 use Hyperf\Redis\Redis;
 use Hyperf\Support\Traits\InteractsWithTime;
 
-class RateLimiter {
+class RateLimiter
+{
+    use InteractsWithTime;
 
-	use InteractsWithTime;
+    /**
+     * The configured limit object resolvers.
+     */
+    protected array $limiters = [];
 
-	/**
-	 * The configured limit object resolvers.
-	 *
-	 * @var array
-	 */
-	protected array $limiters = [];
+    /**
+     * Create a new rate limiter instance.
+     */
+    public function __construct(protected Redis $redis)
+    {
+    }
 
-	/**
-	 * Create a new rate limiter instance.
-	 *
-	 * @param \Hyperf\Redis\Redis $redis
-	 */
-	public function __construct(protected Redis $redis) {
+    /**
+     * Register a named limiter configuration.
+     *
+     * @return $this
+     */
+    public function for(string $name, Closure $callback): static
+    {
+        $this->limiters[$name] = $callback;
 
-	}
+        return $this;
+    }
 
-	/**
-	 * Register a named limiter configuration.
-	 *
-	 * @param string   $name
-	 * @param \Closure $callback
-	 * @return $this
-	 */
-	public function for(string $name, Closure $callback): static {
-		$this->limiters[$name] = $callback;
+    /**
+     * Get the given named rate limiter.
+     */
+    public function limiter(string $name): ?Closure
+    {
+        return $this->limiters[$name] ?? null;
+    }
 
-		return $this;
-	}
+    /**
+     * Attempts to execute a callback if it's not limited.
+     */
+    public function attempt(string $key, int $maxAttempts, Closure $callback, int $decaySeconds = 60): mixed
+    {
+        if ($this->tooManyAttempts($key, $maxAttempts)) {
+            return false;
+        }
 
-	/**
-	 * Get the given named rate limiter.
-	 *
-	 * @param string $name
-	 * @return \Closure|null
-	 */
-	public function limiter(string $name): ?Closure {
-		return $this->limiters[$name] ?? null;
-	}
+        return \Hyperf\Tappable\tap($callback() ?: true, function () use ($key, $decaySeconds) {
+            $this->hit($key, $decaySeconds);
+        });
+    }
 
-	/**
-	 * Attempts to execute a callback if it's not limited.
-	 *
-	 * @param string   $key
-	 * @param int      $maxAttempts
-	 * @param \Closure $callback
-	 * @param int      $decaySeconds
-	 * @return mixed
-	 */
-	public function attempt(string $key, int $maxAttempts, Closure $callback, int $decaySeconds = 60): mixed {
-		if ($this->tooManyAttempts($key, $maxAttempts)) {
-			return false;
-		}
+    /**
+     * Determine if the given key has been "accessed" too many times.
+     */
+    public function tooManyAttempts(string $key, int $maxAttempts): bool
+    {
+        if ($this->attempts($key) >= $maxAttempts) {
+            if ($this->redis->get($this->cleanRateLimiterKey($key) . ':timer')) {
+                return true;
+            }
 
-		return \Hyperf\Tappable\tap($callback() ?: true, function () use ($key, $decaySeconds) {
-			$this->hit($key, $decaySeconds);
-		});
-	}
+            $this->resetAttempts($key);
+        }
 
-	/**
-	 * Determine if the given key has been "accessed" too many times.
-	 *
-	 * @param string $key
-	 * @param int    $maxAttempts
-	 *
-	 * @return bool
-	 */
-	public function tooManyAttempts(string $key, int $maxAttempts): bool {
-		if ($this->attempts($key) >= $maxAttempts) {
-			if ($this->redis->get($this->cleanRateLimiterKey($key) . ':timer')) {
-				return true;
-			}
+        return false;
+    }
 
-			$this->resetAttempts($key);
-		}
+    /**
+     * Increment the counter for a given key for a given decay time.
+     */
+    public function hit(string $key, int $decaySeconds = 60): int
+    {
+        $key = $this->cleanRateLimiterKey($key);
 
-		return false;
-	}
+        $this->redis->set(
+            $key . ':timer',
+            $this->availableAt($decaySeconds),
+            $decaySeconds
+        );
 
-	/**
-	 * Increment the counter for a given key for a given decay time.
-	 *
-	 * @param string $key
-	 * @param int    $decaySeconds
-	 * @return int
-	 */
-	public function hit(string $key, int $decaySeconds = 60): int {
-		$key = $this->cleanRateLimiterKey($key);
+        $hits = $this->redis->incr($key);
+        $hits === 1 and $this->redis->expire($key, $decaySeconds);
 
-		$this->redis->set(
-			$key . ':timer', $this->availableAt($decaySeconds), $decaySeconds
-		);
+        return $hits;
+    }
 
-		$hits = $this->redis->incr($key);
-		$hits === 1 and $this->redis->expire($key, $decaySeconds);
+    /**
+     * Get the number of attempts for the given key.
+     */
+    public function attempts(string $key): int
+    {
+        $key = $this->cleanRateLimiterKey($key);
 
-		return $hits;
-	}
+        return $this->redis->get($key) ?? 0;
+    }
 
-	/**
-	 * Get the number of attempts for the given key.
-	 *
-	 * @param string $key
-	 * @return int
-	 */
-	public function attempts(string $key): int {
-		$key = $this->cleanRateLimiterKey($key);
+    /**
+     * Reset the number of attempts for the given key.
+     */
+    public function resetAttempts(string $key): int
+    {
+        $key = $this->cleanRateLimiterKey($key);
 
-		return $this->redis->get($key) ?? 0;
-	}
+        return $this->redis->del($key);
+    }
 
-	/**
-	 * Reset the number of attempts for the given key.
-	 *
-	 * @param string $key
-	 * @return int
-	 */
-	public function resetAttempts(string $key): int {
-		$key = $this->cleanRateLimiterKey($key);
+    /**
+     * Get the number of retries left for the given key.
+     */
+    public function remaining(string $key, int $maxAttempts): int
+    {
+        $key = $this->cleanRateLimiterKey($key);
 
-		return $this->redis->del($key);
-	}
+        $attempts = $this->attempts($key);
 
-	/**
-	 * Get the number of retries left for the given key.
-	 *
-	 * @param string $key
-	 * @param int    $maxAttempts
-	 * @return int
-	 */
-	public function remaining(string $key, int $maxAttempts): int {
-		$key = $this->cleanRateLimiterKey($key);
+        return $maxAttempts - $attempts;
+    }
 
-		$attempts = $this->attempts($key);
+    /**
+     * Get the number of retries left for the given key.
+     */
+    public function retriesLeft(string $key, int $maxAttempts): int
+    {
+        return $this->remaining($key, $maxAttempts);
+    }
 
-		return $maxAttempts - $attempts;
-	}
+    /**
+     * Clear the hits and lockout timer for the given key.
+     */
+    public function clear(string $key)
+    {
+        $key = $this->cleanRateLimiterKey($key);
 
-	/**
-	 * Get the number of retries left for the given key.
-	 *
-	 * @param string $key
-	 * @param int    $maxAttempts
-	 * @return int
-	 */
-	public function retriesLeft(string $key, int $maxAttempts): int {
-		return $this->remaining($key, $maxAttempts);
-	}
+        $this->resetAttempts($key);
 
-	/**
-	 * Clear the hits and lockout timer for the given key.
-	 *
-	 * @param string $key
-	 * @return void
-	 */
-	public function clear(string $key) {
-		$key = $this->cleanRateLimiterKey($key);
+        $this->redis->del($key . ':timer');
+    }
 
-		$this->resetAttempts($key);
+    /**
+     * Get the number of seconds until the "key" is accessible again.
+     */
+    public function availableIn(string $key): int
+    {
+        $key = $this->cleanRateLimiterKey($key);
 
-		$this->redis->del($key . ':timer');
-	}
+        return max(0, $this->redis->get($key . ':timer') - $this->currentTime());
+    }
 
-	/**
-	 * Get the number of seconds until the "key" is accessible again.
-	 *
-	 * @param string $key
-	 * @return int
-	 */
-	public function availableIn(string $key): int {
-		$key = $this->cleanRateLimiterKey($key);
-
-		return max(0, $this->redis->get($key . ':timer') - $this->currentTime());
-	}
-
-	/**
-	 * Clean the rate limiter key from unicode characters.
-	 *
-	 * @param string $key
-	 * @return string
-	 */
-	public function cleanRateLimiterKey(string $key): string {
-		return preg_replace('/&([a-z])[a-z]+;/i', '$1', htmlentities($key));
-	}
+    /**
+     * Clean the rate limiter key from unicode characters.
+     */
+    public function cleanRateLimiterKey(string $key): string
+    {
+        return preg_replace('/&([a-z])[a-z]+;/i', '$1', htmlentities($key));
+    }
 }

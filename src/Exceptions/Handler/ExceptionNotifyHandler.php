@@ -11,15 +11,20 @@ declare(strict_types=1);
  */
 namespace AresInspired\HyperfExceptionNotify\Exceptions\Handler;
 
+use AresInspired\HyperfExceptionNotify\ExceptionNotifyManager;
+use Hyperf\Di\Annotation\Inject;
 use Hyperf\ExceptionHandler\ExceptionHandler;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 class ExceptionNotifyHandler extends ExceptionHandler
 {
+    #[Inject]
+    protected ExceptionNotifyManager $exceptionNotifyManager;
+
     public function handle(Throwable $throwable, ResponseInterface $response)
     {
-        stdoutLogger()->debug('异常通知. ' . __CLASS__);
+        $this->exceptionNotifyManager->report($throwable);
 
         return $response;
     }

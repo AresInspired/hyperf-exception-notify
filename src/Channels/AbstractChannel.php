@@ -11,7 +11,7 @@ declare(strict_types=1);
  */
 namespace AresInspired\HyperfExceptionNotify\Channels;
 
-use AresInspired\HyperfExceptionNotify\Contracts\ChannelContract as ChannelContract;
+use AresInspired\HyperfExceptionNotify\Contracts\ChannelContract;
 use AresInspired\HyperfExceptionNotify\Traits\CreateStatic;
 use Hyperf\Stringable\Str;
 
@@ -24,5 +24,5 @@ abstract class AbstractChannel implements ChannelContract
         return Str::lower(Str::beforeLast(\Hyperf\Support\class_basename($this), 'AbstractChannel'));
     }
 
-	abstract public function report(string $report);
+    abstract public function report(string $report);
 }

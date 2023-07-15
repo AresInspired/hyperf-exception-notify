@@ -11,7 +11,6 @@ declare(strict_types=1);
  */
 namespace AresInspired\HyperfExceptionNotify;
 
-
 class ConfigProvider
 {
     public function __invoke(): array
@@ -35,7 +34,7 @@ class ConfigProvider
             'exceptions' => [
                 'handler' => [
                     'http' => [
-	                    \AresInspired\HyperfExceptionNotify\Exceptions\Handler\ExceptionNotifyHandler::class,
+                        \AresInspired\HyperfExceptionNotify\Exceptions\Handler\ExceptionNotifyHandler::class,
                     ],
                 ],
             ],
