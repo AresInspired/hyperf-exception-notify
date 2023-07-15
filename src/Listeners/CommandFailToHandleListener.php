@@ -9,7 +9,7 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
-namespace AresInspired\HyperfExceptionNotify\Listener;
+namespace AresInspired\HyperfExceptionNotify\Listeners;
 
 use Hyperf\Command\Event\FailToHandle;
 use Hyperf\Event\Contract\ListenerInterface;

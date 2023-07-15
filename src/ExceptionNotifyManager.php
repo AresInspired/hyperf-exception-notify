@@ -28,8 +28,7 @@ class ExceptionNotifyManager extends Manager
         protected CollectorManager $collectorManager,
         protected ConfigInterface $config,
         protected RateLimiter $rateLimiter
-    )
-    {
+    ) {
     }
 
     public function reportIf($condition, Throwable $throwable): void

@@ -107,7 +107,7 @@ class RateLimiter
     {
         $key = $this->cleanRateLimiterKey($key);
 
-        return $this->redis->get($key) ?? 0;
+        return (int) $this->redis->get($key);
     }
 
     /**
