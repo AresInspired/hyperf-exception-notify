@@ -19,8 +19,8 @@ class ExceptionBasicCollector extends Collector implements ExceptionAwareContrac
 {
     use ExceptionAwareTrait;
 
-	/** @noinspection PhpArrayShapeAttributeCanBeAddedInspection */
-	public function collect(): array
+    /** @noinspection PhpArrayShapeAttributeCanBeAddedInspection */
+    public function collect(): array
     {
         return [
             'class' => get_class($this->exception),
