@@ -24,7 +24,13 @@ class ExceptionNotifyHandler extends ExceptionHandler
 
     public function handle(Throwable $throwable, ResponseInterface $response)
     {
-        $this->exceptionNotifyManager->report($throwable);
+        $channels = \Hyperf\Collection\collect(\Hyperf\Config\config('exception_notify.channels'))->keys();
+
+        if (empty($channels)) {
+            return $response;
+        }
+
+        $this->exceptionNotifyManager->onChannel(...$channels)->report($throwable);
 
         return $response;
     }

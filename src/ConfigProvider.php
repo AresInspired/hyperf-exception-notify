@@ -42,7 +42,7 @@ class ConfigProvider
 
         if (class_exists('\Hyperf\Command\Event\FailToHandle')) {
             $config['listeners'] = [
-	            \AresInspired\HyperfExceptionNotify\Listeners\CommandFailToHandleListener::class,
+                \AresInspired\HyperfExceptionNotify\Listeners\CommandFailToHandleListener::class,
             ];
         }
 
