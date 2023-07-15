@@ -31,13 +31,6 @@ class ConfigProvider
                     ],
                 ],
             ],
-            'exceptions' => [
-                'handler' => [
-                    'http' => [
-                        \AresInspired\HyperfExceptionNotify\Exceptions\Handler\ExceptionNotifyHandler::class,
-                    ],
-                ],
-            ],
         ];
 
         if (class_exists('\Hyperf\Command\Event\FailToHandle')) {
