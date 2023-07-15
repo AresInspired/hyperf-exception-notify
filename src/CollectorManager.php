@@ -22,8 +22,6 @@ class CollectorManager extends Fluent
     protected $time;
 
     /**
-     * @param array<CollectorContract> $collectors
-     *
      * @throws \AresInspired\HyperfExceptionNotify\Exceptions\InvalidArgumentException
      *
      * @noinspection MagicMethodsValidityInspection

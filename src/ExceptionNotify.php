@@ -27,9 +27,9 @@ class ExceptionNotify
     /**
      * get ExceptionNotify object.
      *
+     * @return \AresInspired\HyperfExceptionNotify\ExceptionNotify
      * @throws \Psr\Container\ContainerExceptionInterface
      * @throws \Psr\Container\NotFoundExceptionInterface
-     * @return \AresInspired\HyperfExceptionNotify\ExceptionNotify
      */
     public static function get(): ExceptionNotify
     {
