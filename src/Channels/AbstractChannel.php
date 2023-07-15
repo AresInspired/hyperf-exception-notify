@@ -12,13 +12,10 @@ declare(strict_types=1);
 namespace AresInspired\HyperfExceptionNotify\Channels;
 
 use AresInspired\HyperfExceptionNotify\Contracts\ChannelContract;
-use AresInspired\HyperfExceptionNotify\Traits\CreateStatic;
 use Hyperf\Stringable\Str;
 
 abstract class AbstractChannel implements ChannelContract
 {
-    use CreateStatic;
-
     public function getName(): string
     {
         return Str::lower(Str::beforeLast(\Hyperf\Support\class_basename($this), 'AbstractChannel'));
