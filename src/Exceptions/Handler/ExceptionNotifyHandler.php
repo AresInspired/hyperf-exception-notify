@@ -11,7 +11,7 @@ declare(strict_types=1);
  */
 namespace AresInspired\HyperfExceptionNotify\Exceptions\Handler;
 
-use AresInspired\HyperfExceptionNotify\ExceptionNotifyManager;
+use AresInspired\HyperfExceptionNotify\ExceptionNotify;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\ExceptionHandler\ExceptionHandler;
 use Psr\Http\Message\ResponseInterface;
@@ -20,9 +20,9 @@ use Throwable;
 class ExceptionNotifyHandler extends ExceptionHandler
 {
     #[Inject]
-    protected ExceptionNotifyManager $exceptionNotifyManager;
+    protected ExceptionNotify $exceptionNotify;
 
-    public function handle(Throwable $throwable, ResponseInterface $response)
+    public function handle(Throwable $throwable, ResponseInterface $response): ResponseInterface
     {
         $channels = \Hyperf\Collection\collect(\Hyperf\Config\config('exception_notify.channels'))->keys();
 
@@ -30,7 +30,7 @@ class ExceptionNotifyHandler extends ExceptionHandler
             return $response;
         }
 
-        $this->exceptionNotifyManager->onChannel(...$channels)->report($throwable);
+        $this->exceptionNotify->onChannel(...$channels)->report($throwable);
 
         return $response;
     }

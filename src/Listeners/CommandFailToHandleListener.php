@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection PhpDocSignatureInspection */
+
 declare(strict_types=1);
 /**
  * This file is part of Hyperf.
@@ -11,11 +13,16 @@ declare(strict_types=1);
  */
 namespace AresInspired\HyperfExceptionNotify\Listeners;
 
+use AresInspired\HyperfExceptionNotify\ExceptionNotify;
 use Hyperf\Command\Event\FailToHandle;
+use Hyperf\Di\Annotation\Inject;
 use Hyperf\Event\Contract\ListenerInterface;
 
 class CommandFailToHandleListener implements ListenerInterface
 {
+    #[Inject]
+    protected ExceptionNotify $exceptionNotify;
+
     public function listen(): array
     {
         return [
@@ -28,6 +35,12 @@ class CommandFailToHandleListener implements ListenerInterface
      */
     public function process(object $event): void
     {
-        stdoutLogger()->debug('异常通知. ' . __CLASS__);
+        $channels = \Hyperf\Collection\collect(\Hyperf\Config\config('exception_notify.channels'))->keys();
+
+        if (empty($channels)) {
+            return;
+        }
+
+        $this->exceptionNotify->onChannel(...$channels)->report($event->getThrowable());
     }
 }
