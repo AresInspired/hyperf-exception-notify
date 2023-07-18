@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection PhpArrayShapeAttributeCanBeAddedInspection */
+
 declare(strict_types=1);
 /**
  * This file is part of Hyperf.
@@ -15,10 +17,6 @@ class ConfigProvider
 {
     public function __invoke(): array
     {
-        if ((bool) \Hyperf\Support\env('EXCEPTION_NOTIFY_ENABLED', true) === false) {
-            return [];
-        }
-
         $config = [
             'dependencies' => [
             ],
@@ -33,12 +31,15 @@ class ConfigProvider
             ],
         ];
 
+        if ((bool) \Hyperf\Support\env('EXCEPTION_NOTIFY_ENABLED_CLI', true) === false) {
+            return $config;
+        }
+
         if (class_exists('\Hyperf\Command\Event\FailToHandle')) {
             $config['listeners'] = [
                 \AresInspired\HyperfExceptionNotify\Listeners\CommandFailToHandleListener::class,
             ];
         }
-
         return $config;
     }
 }

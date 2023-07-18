@@ -26,6 +26,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Enable command exception notification report switch.
+    |--------------------------------------------------------------------------
+    |
+    | If set to false or enabled set to false, the exception notification report will not be enabled.
+    |
+    */
+    'enabled_cli' => (bool) \Hyperf\Support\env('EXCEPTION_NOTIFY_ENABLED_CLI', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | A list of the application environments that are reported.
     |--------------------------------------------------------------------------
     |
