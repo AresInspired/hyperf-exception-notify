@@ -33,18 +33,27 @@ class RequestBasicCollector extends Collector
         $dispatched = $this->request->getAttribute(Dispatched::class);
 
         $request = $this->request;
-        return [
+
+        $data = [
             'url' => $this->request->fullUrl(),
             'ip' => real_ip(),
             'method' => $this->request->getMethod(),
-            'route' => $dispatched->handler->route,
+            'route' => '',
             'action' => $this->request->getRequestTarget(),
-            'class' => $dispatched->handler->callback[0],
-            'function' => $dispatched->handler->callback[1],
+            'class' => '',
+            'function' => '',
             'duration' => \Hyperf\Support\value(function () use ($request) {
                 $startTime = $request->server('request_time_float');
                 return floor((microtime(true) - $startTime) * 1000) . 'ms';
             }),
         ];
+
+        if (! is_null($dispatched->handler)) {
+            $data['route'] = $dispatched->handler->route;
+            $data['class'] = $dispatched->handler->callback[0];
+            $data['function'] = $dispatched->handler->callback[1];
+        }
+
+        return $data;
     }
 }
