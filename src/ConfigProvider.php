@@ -17,7 +17,7 @@ class ConfigProvider
 {
     public function __invoke(): array
     {
-        $config = [
+        return [
             'dependencies' => [
             ],
             'commands' => [
@@ -30,16 +30,5 @@ class ConfigProvider
                 ],
             ],
         ];
-
-        if ((bool) \Hyperf\Support\env('EXCEPTION_NOTIFY_ENABLED_CLI', true) === false) {
-            return $config;
-        }
-
-        if (class_exists('\Hyperf\Command\Event\FailToHandle')) {
-            $config['listeners'] = [
-                \AresInspired\HyperfExceptionNotify\Listeners\CommandFailToHandleListener::class,
-            ];
-        }
-        return $config;
     }
 }
