@@ -15,6 +15,7 @@ namespace AresInspired\HyperfExceptionNotify\Collectors;
 
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Router\Dispatched;
+use Throwable;
 
 class RequestBasicCollector extends Collector
 {
@@ -48,10 +49,14 @@ class RequestBasicCollector extends Collector
             }),
         ];
 
-        if (! is_null($dispatched->handler)) {
-            $data['route'] = $dispatched->handler->route;
-            $data['class'] = $dispatched->handler->callback[0];
-            $data['function'] = $dispatched->handler->callback[1];
+        try {
+            if (! is_null($dispatched->handler)) {
+                $data['route'] = $dispatched->handler->route;
+                $data['class'] = $dispatched->handler->callback[0];
+                $data['function'] = $dispatched->handler->callback[1];
+            }
+        } catch (Throwable $throwable) {
+            stdoutLogger()->error('采集器异常: ' . $throwable->getMessage());
         }
 
         return $data;
